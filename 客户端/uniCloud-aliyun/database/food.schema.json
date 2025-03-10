@@ -1,0 +1,44 @@
+{
+	"bsonType": "object",
+	"required": [],
+	"permission": {
+		"read": true,
+		"create": true,
+		"update": true,
+		"delete": true
+	},
+	"properties": {
+		"_id": {
+			"description": "ID，系统自动生成"
+		},
+		"image": {
+			"bsonType": "string",
+			"description": "食物图片的URL"
+		},
+		"title": {
+			"bsonType": "string",
+			"description": "食物标题"
+		},
+		"description": {
+			"bsonType": "string",
+			"description": "食物简介"
+		},
+		"rating": {
+			"bsonType": "double",
+			"default": 3.0, // 设置默认评分为3分
+			"description": "食物评分"
+		},
+		"page_url": {
+			"bsonType": "string",
+			"description": "食物跳转页面的URL"
+		},
+		"address": {
+		      "bsonType": "string",
+		      "description": "商品地址"
+		    },
+		"comment_count": {
+						"bsonType": "int",
+						"default": 0
+			}
+	}
+}

@@ -1,0 +1,55 @@
+{
+  "bsonType": "object",
+  "required": [],
+  "permission": {
+    "read":"doc.state == true||doc.author_id==auth.uid|| 'aadmin' in auth.role",
+    "create": "auth.uid != null",
+    "update": "auth.uid != null",
+    "delete": true
+  },
+  "properties": {
+    "_id": {
+      "description": "ID，系统自动生成"
+    },
+	"state":{
+		"bsonType": "bool",
+		"forceDefaultValue":false
+	},
+    "imgs": {
+          "bsonType": "array",
+          "arrayType": "file",
+          "maxLength": 2,
+          "fileMediaType": "image",
+          "title": "图片列表"
+        },
+    "title": {
+      "bsonType": "string",
+      "description": "标题"
+    },
+    "author_id": {
+		"foreignKey": "uni-id-users._id",
+      "bsonType": "string",
+      "description": "作者的ID",
+	  "forceDefaultValue":{
+	  	"$env": "uid"
+	  }
+    },
+     "likes": {
+          "bsonType": "int",
+          "description": "点赞信息"
+		  },
+        
+    "reason": {
+      "bsonType": "string",
+      "description": "喜爱的原因"
+    },
+    "time": {
+    			"bsonType": "date",
+    			"default": {
+    				"$function": {
+    					"body": "return new Date();"
+    				}
+    	}
+    }
+  }
+}

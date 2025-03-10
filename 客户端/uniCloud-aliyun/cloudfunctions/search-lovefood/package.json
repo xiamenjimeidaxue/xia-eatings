@@ -1,0 +1,9 @@
+{
+  "name": "search-lovefood",
+  "dependencies": {
+    "uni-cloud-router": "^1.0.0"
+  },
+  "extensions": {
+    "uni-cloud-jql": {}
+  }
+}

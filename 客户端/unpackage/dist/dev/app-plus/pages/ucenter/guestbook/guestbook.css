@@ -1,0 +1,71 @@
+
+.item[data-v-1811f559] {
+	margin-bottom: 10px;
+}
+.main[data-v-1811f559] {
+	display: flex;
+	align-items: center;
+	position: relative;
+}
+.cloud-image[data-v-1811f559] {
+	width: 50px;
+	height: 50px;
+}
+.info[data-v-1811f559] {
+	position: absolute;
+	top: 0;
+	left: 50px; /* 调整这里的数值以确保信息栏紧贴在图片右侧 */
+	padding: 6px;
+	background-color: rgba(255, 255, 255, 0.5);
+	color: #070707;
+}
+.text-container[data-v-1811f559] {
+	text-align: left; /* 将文字左对齐 */
+}
+.nickname[data-v-1811f559] {
+	font-size: 12px;
+	font-weight: bold;
+}
+.things[data-v-1811f559] {
+	margin-top: 6px;
+	font-size: 14px;
+}
+uni-text[data-v-1811f559] {
+	position: absolute;
+	top: 0;
+	right: 0;
+}
+.submit-box[data-v-1811f559] {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px;
+  box-sizing: border-box;
+  background-color: #fff;
+}
+.input-box[data-v-1811f559] {
+  display: inline-block;
+  height: 30px;
+  width: calc(80% - 5px);
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+.btn[data-v-1811f559] {
+  display: inline-block;
+  height: 45px;
+  line-height: 45px;
+  width: 20%;
+  padding: 0;
+  background-color: #007bff;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+

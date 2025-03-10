@@ -1,0 +1,341 @@
+<template>
+	<view class="pages">
+		<!-- #ifndef H5 -->
+		<statusBar></statusBar>
+		<!-- #endif -->
+
+		<!-- 搜索功能 -->
+		<unicloud-db ref="udb" orderby="rating desc" v-slot:default="{ data, loading, error, options }" collection="food">
+				  <view v-if="error">{{ error.message }}</view>
+				  <view v-else>
+					  <view class="uni-search-box">
+					    <input type="text" class="input-box" v-model="keyword" placeholder="请输入关键字(食物内容或者地址)" @keyup.enter="search()"/>
+					    <button class="cover-search-bar" @click="search">搜索</button>
+					  </view>
+						<div v-if="searchresult==''" class="food-container">
+				      <div v-for="item in data" :key="item._id" class="food-item" @click="gotoUrl(item.page_url,item._id)">
+				        <img :src="item.image" class="food-image" />
+				        <div class="food-info">
+				          <h3 class="food-title">{{ item.title }}</h3>
+				          <p class="food-address">地址: {{ item.address }}</p>
+				          <p class="food-price">价格: {{ item.price }}元</p>
+				         <div class="food-rating">
+				           推荐指数:
+				           <template v-for="star in Math.floor(item.rating)">
+				             <span class="star">&#9733;</span>
+				           </template>
+				           <!-- 判断是否有半颗星星 -->
+				           <span v-if="item.rating % 1 !== 0" style="color:gold">
+				         									<span class="star star-outline">&#9734;</span> <!-- 空心星星 -->
+
+				         									</span>
+															<span style="color:gold">
+																{{ item.rating.toFixed(1) }}
+																</span>					
+				         </div>
+				        </div>
+				      </div>
+				    </div>
+					<div v-else class="food-container">
+					  <div v-for="item in searchresult" :key="item._id" class="food-item" @click="gotoUrl(item.page_url,item._id)">
+					    <img :src="item.image" class="food-image" />
+					    <div class="food-info">
+					      <h3 class="food-title">{{ item.title }}</h3>
+					      <p class="food-address">地址: {{ item.address }}</p>
+					      <p class="food-price">价格: {{ item.price }}元</p>
+					     <div class="food-rating">
+					       推荐指数:
+					       <template v-for="star in Math.floor(item.rating)">
+					         <span class="star">&#9733;</span>
+					       </template>
+					       <!-- 判断是否有半颗星星 -->
+					       <span v-if="item.rating % 1 !== 0" style="color:gold">
+					     									<span class="star star-outline">&#9734;</span> <!-- 空心星星 -->
+					     									
+					     									</span>
+															<span style="color:gold">
+																{{ item.rating.toFixed(1) }}
+																</span>
+					     </div>
+					    </div>
+					  </div>
+					</div>
+				  </view>
+				</unicloud-db>
+	</view>
+</template>
+
+<script>
+	let cdbRef;
+	import statusBar from "@/uni_modules/uni-nav-bar/components/uni-nav-bar/uni-status-bar";
+	import Gps from '@/uni_modules/json-gps/js_sdk/gps.js';
+	const gps = new Gps(),db = uniCloud.database();
+
+	export default {
+		components: {
+			statusBar
+		},
+		computed: {
+			inputPlaceholder(e) {
+				if (uni.getStorageSync('CURRENT_LANG') == "en") {
+					return 'Please enter the search content'
+				} else {
+					return '请输入搜索内容'
+				}
+			},
+			colList(){
+				return [
+					db.collection('opendb-news-articles').where(this.where).field('avatar,title,last_modify_date,user_id').getTemp(),
+					db.collection('uni-id-users').field('_id,nickname').getTemp()
+				]
+			}
+		},
+		data() {
+			return {
+				where: '"article_status" == 1',
+				keyword: "",
+				showRefresh: false,
+				listHight: 0,
+				searchedData: null,
+				searchresult:"",
+				dbOptions: {
+				        sort: { score: -1 },
+						}
+			}
+		},
+		watch: {
+			keyword(keyword, oldValue) {
+				let where = '"article_status" == 1 '
+				if (keyword) {
+					this.where = where + `&& /${keyword}/.test(title)`;
+				} else {
+					this.where = where;
+				}
+			}
+		},
+		async onReady() {
+			// #ifdef APP-NVUE
+			/* 可用窗口高度 - 搜索框高 - 状态栏高 */
+			this.listHight = uni.getSystemInfoSync().windowHeight - uni.getSystemInfoSync().statusBarHeight - 50 + 'px';
+			// #endif
+			// #ifndef APP-NVUE
+			this.listHight = 'auto'
+			// #endif
+			cdbRef = this.$refs.udb
+		},
+		async onShow() {
+			this.keyword = getApp().globalData.searchText
+			getApp().globalData.searchText = ''
+			//这里仅演示如何，在onShow生命周期获取设备位置，并在设备或者应用没有权限时自动引导。设置完毕自动重新获取。
+			//你可以基于他做自己的业务，比如：根据距离由近到远排序列表数据等
+			// uni.showLoading({
+			// 	title:"获取定位中"
+			// });
+			//默认h5端不获取定位
+			// #ifndef H5
+			let location = await gps.getLocation({
+				geocode: true
+			})
+			// console.log(location);
+			// #endif
+			// if(location){
+			// 	uni.showToast({
+			// 		title: JSON.stringify(location),
+			// 		icon: 'none'
+			// 	});
+			// }
+			// uni.hideLoading()
+		},
+		methods: {
+			 gotoUrl(url, itemId) {
+			   uni.navigateTo({
+			     url: `${url}?_id=${itemId}`
+			   });
+			 },
+			search() {
+			      // 调用云函数进行搜索
+			      uniCloud.callFunction({
+			        name: 'search-food', // 云函数名称
+			        data: {
+			          keyword: this.keyword // 将搜索关键字传递给云函数
+			        },
+			        success: res => {
+			          // 打印搜索结果
+					  this.searchresult=res.result.data;
+					  console.log(this.searchresult); 
+			        },
+			        fail: err => {
+			          console.error(err);
+					  
+			        }
+			      })
+			    },
+			retry() {
+				this.refresh()
+			},
+			refresh() {
+				cdbRef.loadData({
+					clear: true
+				}, () => {
+					uni.stopPullDownRefresh()
+					// #ifdef APP-NVUE
+					this.showRefresh = false
+					// #endif
+					console.log('end');
+				})
+				console.log('refresh');
+			},
+			loadMore() {
+				cdbRef.loadMore()
+			},
+			onqueryerror(e) {
+				console.error(e);
+			},
+			onpullingdown(e) {
+				console.log(e);
+				this.showRefresh = true
+				if(e.pullingDistance>100){
+					this.refresh()
+				}
+			},
+			
+		},
+		// #ifndef APP-NVUE
+		onPullDownRefresh() {
+			this.refresh()
+		},
+		onReachBottom() {
+			this.loadMore()
+		}
+		// #endif
+	}
+</script>
+
+<style scoped>
+	/* #ifndef APP-NVUE */
+	view {
+		display: flex;
+		box-sizing: border-box;
+		flex-direction: column;
+	}
+	/* #endif */
+	.pages {
+		background-color: #FFFFFF;
+	}
+
+	.avatar {
+		width: 200rpx;
+		height: 200rpx;
+		margin-right: 10rpx;
+	}
+
+	.main {
+		justify-content: space-between;
+		flex: 1;
+	}
+
+	.title {
+		font-size: 16px;
+	}
+
+	.info {
+		flex-direction: row;
+		justify-content: space-between;
+	}
+
+	.author,
+	.last_modify_date {
+		font-size: 14px;
+		color: #999999;
+	}
+
+	.uni-search-box {
+	  background-color: #FFFFFF;
+	  position: sticky;
+	  height: 50px;
+	  top: 0px;
+	  left: 0;
+	  /* #ifndef APP-PLUS */
+	  z-index: 9;
+	  /* #endif */
+	  /* #ifdef MP-WEIXIN */
+	  width: 580rpx;
+	  /* #endif */
+	  display: flex; /* 新增 */
+	}
+	
+	.cover-search-bar {
+	  height: 40px;
+	  width: 80px; 
+	  position: absolute;
+	  top: -2px;
+	  margin-bottom: -20px;
+	  font-size: 15px;
+	  /* #ifndef APP-NVUE */
+	  z-index: 999;
+	  /* #endif */
+	  right: 0; /* 新增 */
+	  background-color: #c30061;
+	  color:white;
+	}
+	
+	.input-box {
+	  width: 400px; /* 根据需要调整输入框的宽度 */
+	  margin-left: 10px; /* 根据需要调整输入框与搜索栏之间的间距 */
+	  height: 40px;
+	}
+
+	.food-container {
+	  display: flex;
+	  flex-wrap: wrap;
+	}
+	
+	.food-item {
+	  width: 300px;
+	  margin: 10px;
+	  padding: 10px;
+	  background-color: #fff;
+	  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+	}
+	
+	.food-image {
+	  width: 100%;
+	  margin-bottom: 10px;
+	}
+	
+	.food-title {
+	  font-size: 20px;
+	  font-weight: bold;
+	  margin-bottom: 5px;
+	}
+	
+	.food-info {
+	  display: flex;
+	  flex-direction: column;
+	}
+	
+	.food-price,
+	.food-rating,
+	.food-address {
+	  text-align: left;
+	}
+	
+	/* 响应式布局 */
+	@media only screen and (max-width: 768px) {
+	  .food-item {
+	    width: 100%;
+	  }
+	}
+.star {
+	  font-size: 25px; /* 字体大小 */
+	  color: #f6d769; /* 星星的颜色 */
+	  margin-right: 5px; /* 每个星星之间的间距 */
+	}
+.star-outline {
+  color: gold;
+  font-size: 25px; /* 字体大小 */
+}
+
+
+
+</style>

@@ -1,0 +1,48 @@
+// 文档教程: https://uniapp.dcloud.net.cn/uniCloud/schema
+{
+	"bsonType": "object",
+	"required": [],
+	"permission": {
+		"read": "doc.state == true||doc.user_id==auth.uid|| 'aadmin' in auth.role",
+		"create": "auth.uid != null",
+		"update": "true",
+		"delete": "true"
+	},
+	"properties": {
+		"_id": {
+			"description": "ID，系统自动生成"
+		},
+		"test":{
+			"bsonType": "string"
+		},
+		"state":{
+			"bsonType": "bool",
+			"forceDefaultValue":false
+		},
+		"user_id":{
+			"foreignKey": "uni-id-users._id",
+			"bsonType": "string",
+			"forceDefaultValue":{
+				"$env": "uid"
+			}
+		},
+      "score": {
+			"bsonType": "int",
+			"minimum": 1,
+			"maximum": 5
+		},
+		"textto":{
+			"foreignKey": "food._id",
+			"bsonType": "string",
+			"description": "评论对应的食物-id"
+		},
+		"time": {
+			"bsonType": "date",
+			"default": {
+				"$function": {
+					"body": "return new Date();"
+				}
+	}
+}
+}
+}
